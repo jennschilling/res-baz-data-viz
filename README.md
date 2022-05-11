@@ -1,6 +1,6 @@
 # Data Visualization with ggplot2
 
-This directory contains the data and code for a ResBaz Tucson Workshop: Data Visualization with ggplot2, presented by Jenn Schilling on May 25, 2022.
+This directory contains the code for a ResBaz Tucson Workshop: Data Visualization with ggplot2, presented by Jenn Schilling on May 25, 2022.
 
 Through guided exercises and presentations, participants will learn how to create polished data visualizations in R. The workshop will also include tips on data visualization best practices and saving data visualizations in R.
 
