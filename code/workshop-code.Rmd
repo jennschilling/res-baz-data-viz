@@ -1,0 +1,600 @@
+---
+title: "Data Visualization with ggplot2"
+author: "Jenn Schilling"
+date: "May 25, 2022"
+output:
+ html_document:
+  theme: "flatly" 
+  toc: TRUE
+  toc_float: TRUE
+---
+
+
+This file contains contains code for a ResBaz Tucson Workshop: Data Visualization with ggplot2, presented by Jenn Schilling on May 25, 2022. 
+
+**Materials developed by Jenn Schilling.**  
+
+
+# Setup 
+
+```{r setup, message = FALSE, warning = FALSE}
+
+# Set default chunk options
+knitr::opts_chunk$set(echo = TRUE, message = FALSE) 
+
+# Set the default size of figures
+knitr::opts_chunk$set(fig.width = 8, fig.height = 5)  
+
+# Load libraries
+library(here)
+library(palmerpenguins)
+library(tidyverse)
+library(scales)
+
+```
+
+
+# View the data
+
+```{r read-data}
+
+# Data from Palmer Penguins
+View(penguins)
+
+```
+
+
+# Data Visualization
+
+## Scatterplot
+
+```{r data-viz-01-scatter}
+
+# Is there a relationship between bill length and bill depth?
+
+# Step 1: Specify the data
+ggplot(data = penguins)
+
+# Step 2: Specify the aesthetic mapping
+ggplot(data = penguins,
+       mapping = aes(x = bill_depth_mm,
+                     y = bill_length_mm))
+
+# Step 3: Specify the geometric object
+ggplot(data = penguins,
+       mapping = aes(x = bill_depth_mm,
+                     y = bill_length_mm)) +
+  geom_point()
+
+# Step 4: Add to aesthetic mapping
+
+# Categorical color
+ggplot(data = penguins,
+       mapping = aes(x = bill_depth_mm,
+                     y = bill_length_mm,
+                     color = species)) +
+  geom_point()
+
+# Shape
+ggplot(data = penguins,
+       mapping = aes(x = bill_depth_mm,
+                     y = bill_length_mm,
+                     shape = species)) +
+  geom_point()
+
+# Sequential color
+ggplot(data = penguins,
+       mapping = aes(x = bill_depth_mm,
+                     y = bill_length_mm,
+                     color = flipper_length_mm)) +
+  geom_point()
+
+# Size
+ggplot(data = penguins,
+       mapping = aes(x = bill_depth_mm,
+                     y = bill_length_mm,
+                     size = flipper_length_mm)) +
+  geom_point()
+
+
+```
+
+## Line Graph
+
+```{r data-viz-02-line}
+
+# How does the number of penguins change over time?
+
+# This time, we need to do a little processing
+penguins_time <- penguins %>%
+  count(species, year)
+
+# Set up the data, aesthetic mapping, and geometric objects
+ggplot(data = penguins_time,
+       mapping = aes(x = year,
+                     y = n)) +
+  geom_line()
+
+# Something doesn't look right - there is only one line
+
+# Need to add the group argument in the aes() mapping to tell R to create one line per group (institution)
+ggplot(data = penguins_time,
+       mapping = aes(x = year,
+                     y = n,
+                     group = species)) +
+  geom_line()
+
+# Add Color
+ggplot(data = penguins_time,
+       mapping = aes(x = year,
+                     y = n,
+                     group = species,
+                     color = species)) +
+  geom_line()
+
+# Add Labels
+ggplot(data = penguins_time,
+       mapping = aes(x = year,
+                     y = n,
+                     group = species,
+                     color = species,
+                     label = species)) +
+  geom_line() +
+  geom_text()
+
+# Add labels to the end of the line
+ggplot(data = penguins_time,
+       mapping = aes(x = year,
+                     y = n,
+                     group = species,
+                     color = species)) +
+  geom_line() +
+  geom_text(data = penguins_time %>% 
+              filter(year == 2009),
+            mapping = aes(x = year,
+                          y = n,
+                          color = species,
+                          label = species))
+
+# Adjust label position
+ggplot(data = penguins_time,
+       mapping = aes(x = year,
+                     y = n,
+                     group = species,
+                     color = species)) +
+  geom_line() +
+  geom_text(data = penguins_time %>% 
+              filter(year == 2009),
+            mapping = aes(x = year,
+                          y = n,
+                          color = species,
+                          label = species),
+            hjust = 0) + # Step 1: Align Right
+  coord_cartesian(clip = "off") + # Step 2: Turn off clipping
+  guides(color = "none") + # Step 3: Remove legend since we no longer need it
+  theme(plot.margin = margin(10, 30, 10, 10)) # Step 4: Adjust plot margin since Step 3 caused labels to cut off again
+
+
+
+```
+
+## Bar Graph
+
+```{r data-viz-03-bar}
+
+# How many penguins of each species?
+
+# Set up the data, aesthetic mapping, and geometric objects
+ggplot(data = penguins,
+       mapping = aes(x = species)) +
+  geom_bar()
+
+# geom_bar() computes counts for us - we just need to provide the x-axis category
+
+# Can we sort them?
+# Yes, by using the fct_infreq() function from the forcats package in tidyverse
+# fct_infreq() reorders the levels by their frequencies
+ggplot(data = penguins,
+       mapping = aes(x = fct_infreq(species))) +
+  geom_bar()
+
+# What if we want to make a bar plot with something other than counts?
+
+# What is the average bill length for each species?
+
+# Create a new dataset with average bill length for each species
+penguins_avg <- penguins %>%
+  group_by(species) %>%
+  summarize(avg_bill_length = mean(bill_length_mm, na.rm = TRUE))
+
+# Plot average bill length by species
+ggplot(data = penguins_avg,
+       mapping = aes(x = species,
+                     y = avg_bill_length)) +
+  geom_col() # geom_col() plots a bar with the data specified in the y argument of aes()
+
+# Now plot the aggregated data and arrange the bars in order 
+# This time, use the reorder() function to arrange the species because we have a numeric value we want to use for the ordering
+ggplot(data = penguins_avg,
+       mapping = aes(x = reorder(species, -avg_bill_length),
+                     y = avg_bill_length)) +
+  geom_col()
+
+# How do we add color?
+ggplot(data = penguins_avg,
+       mapping = aes(x = reorder(species, -avg_bill_length),
+                     y = avg_bill_length,
+                     fill = species)) +
+  geom_col()
+
+```
+
+## Pie Chart
+
+```{r data-viz-04-pie}
+
+# What proportion of penguins are male vs. female?
+
+# Pick on species - "Gentoo"
+
+# Plot the data, aesthetics mapping, and geometric object
+ggplot(data = penguins %>%
+         filter(species == "Gentoo"),
+       mapping = aes(x = species,
+                     fill = sex)) +
+  geom_bar()
+
+# Change the coordinate system to make a pie chart
+ggplot(data = penguins %>%
+         filter(species == "Gentoo"),
+       mapping = aes(x = species,
+                     fill = sex)) +
+  geom_bar() +
+  coord_polar(theta = "y")
+
+# What if we want to use percentages?
+
+# Make a new data table with the percentages
+penguin_perc <- penguins %>%
+  filter(species == "Gentoo") %>%
+  count(sex) %>%
+  mutate(perc = n / sum(n))
+
+# Plot the percentages
+ggplot(data = penguin_perc,
+       mapping = aes(x = "",
+                     y = perc,
+                     fill = sex)) +
+  geom_col() +
+  coord_polar(theta = "y",
+              start = 0) 
+
+# Add labels
+ggplot(data = penguin_perc,
+       mapping = aes(x = "",
+                     y = perc,
+                     fill = sex,
+                     label = percent(perc))) +
+  geom_col() +
+  geom_text(position = position_fill(vjust = 0.5)) +
+  coord_polar(theta = "y",
+              start = 0) 
+
+
+```
+
+## Faceting
+
+
+```{r data-viz-05-facets}
+
+# How many penguins of each species are on different islands?
+
+# Plot the data, aesthetic mapping, and geometric object
+ggplot(data = penguins,
+       mapping = aes(y = species)) +
+  geom_bar()
+
+# We could add color to see the island
+ggplot(data = penguins,
+       mapping = aes(y = species,
+                     fill = island)) +
+  geom_bar()
+
+# We could separate out the stacked bars
+ggplot(data = penguins,
+       mapping = aes(y = species,
+                     fill = island)) +
+  geom_bar(position = "dodge")
+
+# Or we could make small charts for each island
+ggplot(data = penguins,
+       mapping = aes(y = species,
+                     fill = island)) +
+  geom_bar()+
+  facet_wrap(~ island) # Make a small plot for each island
+
+# Make some formatting changes for the facets
+ggplot(data = penguins,
+       mapping = aes(y = species,
+                     fill = island)) +
+  geom_bar()+
+  facet_wrap(~ island,
+             ncol = 1, # Put all the plots in one column
+             scales = "free_y") # Let the y-axis be "free" so only the relevant institutions to that locale show
+
+
+```
+
+## Facets with Bars and Lines
+
+```{r data-viz-06-bar}
+
+# How many penguins are there over time of each species (and on each island)?
+
+# Plot - this creates a stacked bar graph
+ggplot(data = penguins,
+       mapping = aes(x = year,
+                     fill = species)) +
+  geom_bar()
+
+# Plot - this creates a side-by-side bar graph
+ggplot(data = penguins,
+       mapping = aes(x = year,
+                     fill = species)) +
+  geom_bar(position = "dodge")
+
+# Make a small plot for each species
+ggplot(data = penguins,
+       mapping = aes(x = year,
+                     fill = species)) +
+  geom_bar(position = "dodge") +
+  facet_wrap(~ species)
+
+# Remove the legend since we no longer need it
+ggplot(data = penguins,
+       mapping = aes(x = year,
+                     fill = species)) +
+  geom_bar(position = "dodge") +
+  facet_wrap(~ species) +
+  guides(fill = "none")
+
+# Change to faceting by island and add the legend back in
+ggplot(data = penguins,
+       mapping = aes(x = year,
+                     fill = species)) +
+  geom_bar(position = "dodge") +
+  facet_wrap(~ island)
+
+# Since we're showing data over time, maybe a line graph would be better
+
+# First we need to create a new dataset that is aggregated
+penguins_time_2 <- penguins %>%
+  count(species, island, year)
+
+# Can we just replace geom_col() with geom_line()?
+ggplot(data = penguins_time_2,
+       mapping = aes(x = year,
+                     y = n,
+                     fill = species)) +
+  geom_line() +
+  facet_wrap(~ island) 
+
+# Where did the color go? Also, notice the change in the y-axis - it no longer starts at 0
+
+# Replace "fill" with "color" to get the line color back
+ggplot(data = penguins_time_2,
+       mapping = aes(x = year,
+                     y = n,
+                     color = species)) +
+  geom_line() +
+  facet_wrap(~ island) 
+
+# Bars, histograms, and boxplots use fill; lines and points use color
+
+```
+
+
+## Formatting and Saving
+
+```{r data-viz-07-format}
+
+# So far, we’ve gone over a few different plot types, how to add color, and faceting. But how do you edit the colors and theme of the plot to get something that looks really nice? We’ve seen some pretty strange and unhelpful axis labels. How do we fix that?
+
+# Let's return to: How does the number of penguins change over time?
+
+# We've already made some adjustments to this plot
+# We removed the legend and added labels to the end of the line (explain why this helps)
+
+p <- ggplot(data = penguins_time,
+       mapping = aes(x = year,
+                     y = n,
+                     group = species,
+                     color = species)) +
+  geom_line() +
+  geom_text(data = penguins_time %>% 
+              filter(year == 2009),
+            mapping = aes(x = year,
+                          y = n,
+                          color = species,
+                          label = species),
+            hjust = 0 #, nudge_x = 0.015 # Add this in at the end to move labels just slightly away from points
+            ) + 
+  coord_cartesian(clip = "off") + 
+  guides(color = "none") + 
+  theme(plot.margin = margin(10, 30, 10, 10)) 
+
+p
+
+# Things we want to fix:
+# 1. x-axis labels should not have decimal place
+# 2. Axis titles are not very helpful
+# 3. There's not plot title or data source noted
+# 4. Use colors other than the R defaults for the lines
+# 5. Remove the grey background from the plot
+
+
+# 1. x-axis labels should not have decimal place
+# Adjust the scale for the x-axis
+p_1 <- p +
+  scale_x_continuous(labels = number_format(big.mark = "", accuracy = 1))
+
+p_1
+
+# 3. Axis titles are not very helpful
+# 4. There's not plot title or data source noted
+# Add on the labs() function
+# Mention color and fill arguments
+# Talk about better plot title
+p_2 <- p_1 +
+  labs(title = "Number of penguins observed each year",
+       x = "Year",
+       y = "", 
+       caption = "Data Source: Palmer Penguins R Package")
+
+p_2
+
+# 5. Use colors other than the R defaults for the lines
+# This is another application of a scale function
+p_3 <- p_2 +
+  scale_color_manual(values = c("darkorange", "purple", "cyan4")) 
+
+p_3
+
+# We can also use other pre-built color schemes 
+p_2 +
+  scale_color_brewer(palette = "Set1") 
+
+# Or we can use HEX codes
+ p_2 +
+  scale_color_manual(values = c( "#53868b", "#f18805", "#3f5a00")) 
+
+# 6. Remove the grey background from the plot
+p_4 <- p_3 +
+  theme_minimal() 
+
+p_4
+
+# Notice our plot margin extension was removed
+# So, add that back in
+p_5 <- p_4 +
+  theme(plot.margin = margin(10, 30, 10, 10)) 
+
+p_5
+
+# Final touch-ups
+# Add a point for each year
+p_6 <- p_5 + 
+  geom_point()
+
+p_6
+
+# Save the plot
+ggsave(filename = here("plots", "line_plot.png"),
+       plot = p_6,
+       device = "png",
+       width = 8,
+       height = 5,
+       type = "cairo") # smoother lines
+
+```
+
+## Fixing Potential Errors
+
+```{r data-viz-08-erro, eval = FALSE}
+
+# Why doesn't the code in this chunk create what we expect?
+
+## 1 -  Color ##
+
+# Not quite right
+ggplot(data = penguins,
+       mapping = aes(x = bill_depth_mm,
+                     y = bill_length_mm,
+                     color = "blue")) +
+  geom_point()
+
+
+# Correct
+ggplot(data = penguins,
+       mapping = aes(x = bill_depth_mm,
+                     y = bill_length_mm)) +
+  geom_point(color = "blue")
+
+## 2 - Plus sign ##
+
+# Not quite right
+ggplot(data = penguins,
+       mapping = aes(x = bill_depth_mm,
+                     y = bill_length_mm))
+ + geom_point() # <- + at the beginning
+
+
+ggplot(data = penguins,
+       mapping = aes(x = bill_depth_mm,
+                     y = bill_length_mm)) # <- missing +
+  geom_point()
+  
+ggplot(data = penguins,
+       mapping = aes(x = bill_depth_mm,
+                     y = bill_length_mm)) + + # <- double +
+  geom_point()
+
+# Correct
+ggplot(data = penguins,
+       mapping = aes(x = bill_depth_mm,
+                     y = bill_length_mm)) + # Need to have a single + at the end of the line
+  geom_point()
+
+
+## 3 - Missing object ##
+
+# Not quite right
+ggplot(data = penguins,
+       mapping = aes(x = bill_depth,
+                     y = bill_length_mm)) +
+  geom_point()
+
+# Correct
+ggplot(data = penguins,
+       mapping = aes(x = bill_depth_mm,
+                     y = bill_length_mm)) +
+  geom_point()
+
+## 4 - Parentheses ##
+
+# Not quite right
+ggplot(data = penguins,
+       mapping = aes(x = bill_depth_mm,
+                     y = bill_length_mm)+ # <- missing parentheses
+  geom_point()
+  
+ggplot(data = penguins,
+       mapping = aes(x = bill_depth_mm,
+                     y = bill_length_mm))) + # <- extra parentheses 
+  geom_point()
+
+# Correct
+ggplot(data = penguins,
+       mapping = aes(x = bill_depth_mm,
+                     y = bill_length_mm)) +
+  geom_point()
+
+```
+
+
+## Data Visualization - Your Turn
+
+Using the code we've already written, try making a new version of a plot. Use a different geometric object (i.e. replace `geom_line()` with `geom_bar()`) or change the aesthetics mappings (i.e. add a color or fill argument to the `aes()` function or switch out the variables used in the `aes()` function to visualize different values). 
+
+Learn more at the package website: https://ggplot2.tidyverse.org/ 
+
+
+```{r visualize-data-your-turn}
+
+
+
+
+```
+
+

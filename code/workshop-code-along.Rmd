@@ -1,0 +1,161 @@
+---
+title: "Data Visualization with ggplot2"
+author: "Jenn Schilling"
+date: "May 25, 2022"
+output:
+ html_document:
+  theme: "flatly" 
+  toc: TRUE
+  toc_float: TRUE
+---
+
+
+This file contains contains code for a ResBaz Tucson Workshop: Data Visualization with ggplot2, presented by Jenn Schilling on May 25, 2022. 
+
+**Materials developed by Jenn Schilling.**  
+
+# Setup
+
+```{r setup}
+
+# Set default chunk options
+knitr::opts_chunk$set(echo = TRUE, message = FALSE) 
+
+# Set the default size of figures
+knitr::opts_chunk$set(fig.width = 8, fig.height = 5)  
+
+# Install packages - if needed
+install.packages(c("here", "palmerpenguins", "tidyverse", "scales"))
+
+# Load libraries
+library(here)
+library(palmerpenguins)
+library(tidyverse)
+library(scales)
+
+```
+
+
+# View the data
+
+```{r read-data}
+
+# Data from Palmer Penguins
+View(penguins)
+
+```
+
+
+# Data Visualization
+
+## Scatterplot
+
+```{r data-viz-01-scatter}
+
+# Is there a relationship between bill length and bill depth?
+
+
+# Step 1: Specify the data
+
+
+# Step 2: Specify the aesthetic mapping
+
+
+# Step 3: Specify the geometric object
+
+
+# Step 4: Add to aesthetic mapping
+
+
+
+
+```
+
+## Line Graph
+
+```{r data-viz-02-line}
+
+# How does the number of penguins change over time?
+
+
+
+```
+
+## Bar Graph
+
+```{r data-viz-03-bar}
+
+# How many penguins of each species?
+
+
+# What is the average bill length for each species?
+
+
+
+```
+
+## Pie Chart
+
+```{r data-viz-04-pie}
+
+# What proportion of penguins are male vs. female?
+
+
+```
+
+## Faceting
+
+```{r data-viz-05-facets}
+
+# How many penguins of each species are on different islands?
+
+
+```
+
+# Facets with Bars and Lines
+
+```{r data-viz-06-bar}
+
+# How many penguins are there over time of each species (and on each island)?
+
+
+```
+
+## Formatting and Saving
+
+```{r data-viz-07-format}
+
+# So far, we’ve gone over a few different plot types, how to add color, and faceting. But how do you edit the colors and theme of the plot to get something that looks really nice? We’ve seen some pretty strange and unhelpful axis labels. How do we fix that?
+
+# Let's return to: How does the number of penguins change over time?
+
+# We've already made some adjustments to this plot
+# We removed the legend and added labels to the end of the line (explain why this helps)
+
+
+```
+
+## Fixing Potential Errors
+
+```{r data-viz-08-error}
+
+# Why doesn't the code in this chunk create what we expect?
+
+
+```
+
+
+## Data Visualization - Your Turn
+
+Using the code we've already written, try making a new version of a plot. Use a different geometric object (i.e. replace `geom_line()` with `geom_bar()`) or change the aesthetics mappings (i.e. add a color or fill argument to the `aes()` function or switch out the variables used in the `aes()` function to visualize different values). 
+
+Learn more at the package website: https://ggplot2.tidyverse.org/ 
+
+```{r visualize-data-your-turn}
+
+
+
+
+```
+
+
